@@ -172,7 +172,7 @@
 // [x] График сломан, если везде одинаковые значения
 // [x] При удалении тикера остается выбор
 
-import { loadTickers } from '@/api.js'
+import { loadTickers, subscribeToTicker, unsubscribeFromTicker } from "@/api.js";
 
 export default {
   name: "App",
@@ -208,6 +208,12 @@ export default {
 
     if (tickersData) {
       this.tickers = JSON.parse(tickersData)
+      this.tickers.forEach(ticker =>
+        subscribeToTicker(
+          ticker.name,
+          (newPrice) => this.updateTicker(ticker.name, newPrice)
+        )
+      )
     }
 
     // Vue автоматически выполняет операцию bind,
@@ -259,6 +265,13 @@ export default {
   },
 
   methods: {
+    updateTicker(tickerName, price) {
+      this.tickers
+        .filter(t => t.name === tickerName)
+        .forEach(t => {
+          t.price = price
+        })
+    },
     formatPrice(price) {
       if (price === '-') {
         return price
@@ -270,13 +283,12 @@ export default {
       if (!this.tickers.length) {
         return
       }
-
       const exchangeData = await loadTickers(this.tickers.map(t => t.name))
-
       this.tickers.forEach(ticker => {
         const price = exchangeData[ticker.name.toUpperCase()]
         ticker.price = price ?? '-'
       })
+
     },
 
     prevPage() {
@@ -295,7 +307,12 @@ export default {
 
       // this.tickers.push(currentTicker) - старая версия
       this.tickers = [...this.tickers, currentTicker]
+      this.ticker = ''
       this.filter = ''
+      subscribeToTicker(
+        currentTicker.name,
+        (newPrice) => this.updateTicker(currentTicker.name, newPrice)
+      )
     },
 
     select(ticker) {
@@ -307,6 +324,7 @@ export default {
       if (this.selectedTicker === tickerToRemove) {
         this.selectedTicker = null
       }
+      unsubscribeFromTicker(tickerToRemove.name)
     },
   },
 
