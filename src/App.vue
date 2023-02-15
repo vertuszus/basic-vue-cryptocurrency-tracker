@@ -172,7 +172,7 @@
 // [x] График сломан, если везде одинаковые значения
 // [x] При удалении тикера остается выбор
 
-import { loadTickers, subscribeToTicker, unsubscribeFromTicker } from "@/api.js";
+import { subscribeToTicker, unsubscribeFromTicker } from "@/api.js";
 
 export default {
   name: "App",
@@ -269,6 +269,9 @@ export default {
       this.tickers
         .filter(t => t.name === tickerName)
         .forEach(t => {
+          if (t === this.selectedTicker) {
+            this.graph.push(price)
+          }
           t.price = price
         })
     },
@@ -277,18 +280,6 @@ export default {
         return price
       }
       return price > 1 ? price.toFixed(2) : price.toPrecision(2)
-    },
-
-    async updateTickers() {
-      if (!this.tickers.length) {
-        return
-      }
-      const exchangeData = await loadTickers(this.tickers.map(t => t.name))
-      this.tickers.forEach(ticker => {
-        const price = exchangeData[ticker.name.toUpperCase()]
-        ticker.price = price ?? '-'
-      })
-
     },
 
     prevPage() {
@@ -333,9 +324,8 @@ export default {
       this.graph = []
     },
 
-    tickers(newValue, oldValue) {
+    tickers() {
       // TODO: Вотчер не работает при добавлении
-      console.log(newValue === oldValue);
       localStorage.setItem('cryptonomicon-list', JSON.stringify(this.tickers))
     },
 
