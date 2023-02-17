@@ -1,35 +1,10 @@
 <template>
   <div class="container mx-auto flex flex-col items-center p-4">
     <div class="container">
-      <section>
-        <div class="flex">
-          <div class="max-w-xs">
-            <label for="wallet" class="block text-sm font-medium text-gray-700"
-            >Тикер</label
-            >
-            <div class="mt-1 relative rounded-md shadow-md">
-              <input
-                v-model="ticker"
-                @keydown.enter="add"
-                type="text"
-                name="wallet"
-                id="wallet"
-                class="block w-full pr-10 border-gray-300 text-gray-900 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md"
-                placeholder="Например DOGE"
-              />
-            </div>
-          </div>
-        </div>
-        <button
-          @click="add"
-          type="button"
-          class="my-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-        >
-          <!-- Heroicon name: solid/mail -->
-          <PlusSignIcon />
-          Добавить
-        </button>
-      </section>
+      <add-ticker
+        @add-ticker="add"
+        :disabled="tooManyTickersAdded"
+      />
       <template v-if="tickers.length">
         <hr class="w-full border-t border-gray-600 my-4" />
         <div>
@@ -165,18 +140,17 @@
 // [x] При удалении тикера остается выбор
 
 import { subscribeToTicker, unsubscribeFromTicker } from "@/api.js";
-import PlusSignIcon from "./components/PlusSignIcon.vue"
+import AddTicker from "@/components/AddTicker";
 
 export default {
   name: "App",
 
   components: {
-    PlusSignIcon
+    AddTicker,
   },
 
   data() {
     return {
-      ticker: '',
       filter: '',
 
       tickers: [],
@@ -229,6 +203,10 @@ export default {
   },
 
   computed: {
+    tooManyTickersAdded() {
+      return this.tickers.length > 4
+    },
+
     startIndex() {
       return (this.page - 1) * 6
     },
@@ -307,15 +285,14 @@ export default {
       this.page = this.page + 1
     },
 
-    add() {
+    add(ticker) {
       const currentTicker = {
-        name: this.ticker,
+        name: ticker,
         price: '-',
       }
 
       // this.tickers.push(currentTicker) - старая версия
       this.tickers = [...this.tickers, currentTicker]
-      this.ticker = ''
       this.filter = ''
       subscribeToTicker(
         currentTicker.name,
