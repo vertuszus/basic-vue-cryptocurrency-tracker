@@ -1,3 +1,5 @@
+![image](https://user-images.githubusercontent.com/72495167/220052731-af57a48f-8bf8-4b21-baf9-b4482165fdfb.png)
+
 ## Project setup
 ```
 npm install
